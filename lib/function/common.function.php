@@ -25,7 +25,7 @@ function _autoload($className){
  */
 function init_model($model_name){
 	if (!class_exists($model_name.'Model')) {
-		$model_file = MODEL_DIR . strtolower($model_name) . 'Model.class.php';
+		$model_file = MODEL_DIR.$model_name.'Model.class.php';
 		require_once ($model_file);
 		
 		if(!is_file($model_file)){
@@ -42,7 +42,7 @@ function init_model($model_name){
  */
 function init_controller($controller_name){
 	if (!class_exists($controller_name)) {
-		$model_file = CONTROLLER_DIR . strtolower($controller_name) . '.class.php';
+		$model_file = CONTROLLER_DIR.$controller_name.'.class.php';
 		if(!is_file($model_file)){
 			return false;
 		}
@@ -143,6 +143,40 @@ function spend_time(&$pretime){
 	$pretime = $now;
 	return $spend;
 } 
+
+function check_code($code){
+	$fontsize = 18;$len = strlen($code);
+    $width = 70;$height=27;
+    $im = @imagecreatetruecolor($width, $height) or die("create image error!");
+    $background_color = imagecolorallocate($im, 255, 255, 255);
+    imagefill($im, 0, 0, $background_color);  
+    for ($i = 0; $i < 2000; $i++) {//获取随机淡色            
+        $line_color = imagecolorallocate($im, mt_rand(180,255),mt_rand(160, 255),mt_rand(100, 255));
+        imageline($im,mt_rand(0,$width),mt_rand(0,$height), //画直线
+            mt_rand(0,$width), mt_rand(0,$height),$line_color);
+        imagearc($im,mt_rand(0,$width),mt_rand(0,$height), //画弧线
+            mt_rand(0,$width), mt_rand(0,$height), $height, $width,$line_color);
+    }
+    $border_color = imagecolorallocate($im, 160, 160, 160);   
+    imagerectangle($im, 0, 0, $width-1, $height-1, $border_color);//画矩形，边框颜色200,200,200
+
+    for ($i = 0; $i < $len; $i++) {//写入随机字串
+        $current = $code[mt_rand(0, strlen($code)-1)];
+        $text_color = imagecolorallocate($im,mt_rand(30, 140),mt_rand(30,140),mt_rand(30,140));
+        imagechar($im,10,$i*$fontsize+6,rand(1,$height/3),$code[$i],$text_color);
+    }
+    if(function_exists("imagejpeg")){
+		header("Content-Type: image/jpeg");
+		imagejpeg($im, null,90);//图片质量
+	}else if(function_exists("imagegif")){
+		header("Content-Type: image/gif");
+		imagegif($im);
+	}else if(function_exists("imagepng")){
+		header("Content-Type: image/x-png");
+		imagepng($im);
+	}
+    imagedestroy($im);//销毁图片
+}
 
 /**
  * 返回当前浮点式的时间,单位秒;主要用在调试程序程序时间时用
@@ -279,6 +313,25 @@ function array_get($arr,$index){
    }
 }
 
+function show_tips($message){
+	echo<<<END
+<html>
+	<style>
+	#msgbox{border: 1px solid #ddd;border: 1px solid #eee;padding: 30px;border-radius: 5px;background: #f6f6f6;
+	font-family: 'Helvetica Neue', "Microsoft Yahei", "微软雅黑", "STXihei", "WenQuanYi Micro Hei", sans-serif;
+	color:888;font-size:13px;margin:0 auto;margin-top:10%;width: 400px;font-size: 16;color:#666;}
+	#msgbox #title{padding-left:20px;font-weight:800;font-size:25px;}
+	#msgbox #message{padding:20px;}
+	</style>
+	<body>
+	<div id="msgbox">
+	<div id="title">tips</div>
+	<div id="message">$message</div>
+	</body>
+</html>
+END;
+	exit;
+} 
 /**
  * 打包返回AJAX请求的数据
  * @params {int} 返回状态码， 通常0表示正常
@@ -290,6 +343,7 @@ function show_json($data,$code = true,$info=''){
 	if ($info != '') {
 		$result['info'] = $info;
 	}
+	header("X-Powered-By: kodExplorer.");
 	header('Content-Type: application/json; charset=utf-8');
 	echo json_encode($result);
 	exit;
@@ -565,7 +619,7 @@ function pr($var, $exit = false){
 
 /**
  * 调试输出变量，对象的值。
-参数任意个(任意类型的变量)
+ * 参数任意个(任意类型的变量)
  * 
  * @return echo 
  */
@@ -611,7 +665,7 @@ function rand_from_to($from, $to){
  * @param string $addChars 额外字符
  * @return string 
  */
-function rand_string($len = 4, $type = ''){
+function rand_string($len = 4, $type='check_code'){
 	$str = '';
 	switch ($type) {
 		case 0://大小写中英文

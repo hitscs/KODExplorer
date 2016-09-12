@@ -212,6 +212,7 @@ class fileCache
         $str = file_get_contents($file);
         $str = substr($str, strlen(CONFIG_EXIT));
         $data= json_decode($str,true);
+        if (is_null($data)) $data = array();
         return $data;
     }
     /**
@@ -219,6 +220,9 @@ class fileCache
     */
     public static function save($file,$data){//10000次需要6s 
         if (!$file) return;
+        if (file_exists($file) && !is_writable($file)) {
+            show_json('the path "data/" can not write!',false);
+        }
         if($fp = fopen($file, "w")){
             if (flock($fp, LOCK_EX)) {  // 进行排它型锁定
                 $str = CONFIG_EXIT.json_encode($data);

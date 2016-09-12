@@ -11,7 +11,6 @@ class desktop extends Controller{
         parent::__construct();
         $this->tpl = TEMPLATE.'desktop/';	
     }
-
     public function index() {
         $wall = $this->config['user']['wall'];
         if(strlen($wall)>3){
@@ -19,13 +18,9 @@ class desktop extends Controller{
         }else{
             $this->assign('wall',STATIC_PATH.'images/wall_page/'.$wall.'.jpg');
         }
-
-        if (!is_dir(MYHOME.'desktop/')) {
+        if (!is_dir(MYHOME.'desktop/') && is_writable(MYHOME)) {
             mkdir(MYHOME.'desktop/');
         }
-
-        $upload_max = get_post_max();   
-        $this->assign('upload_max',$upload_max);  
         $this->display('index.php');
     }
 }
